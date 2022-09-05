@@ -64,6 +64,9 @@ class Chain:
         if length < 20:
             return None
 
+        if random.randrange(10) != 0:
+            return None
+
         return self.gen_message(word)
 
     def gen_message(self, word):
