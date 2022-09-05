@@ -54,10 +54,17 @@ class Chain:
         """Generate answer."""
 
         word = random.choice(self.normalize(string).split())
-        if word in self.data:
-            return self.gen_message(word)
+        if word not in self.data:
+            return None
 
-        return None
+        length = 0
+        for _, value in self.data[word].items():
+            length += value
+
+        if length < 20:
+            return None
+
+        return self.gen_message(word)
 
     def gen_message(self, word):
         """Generate new message."""
