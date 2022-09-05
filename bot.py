@@ -18,7 +18,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="Hi! I'm a chatbot. I won't talk until you say several hundreds of words.")
+        text="Hi! I'm a chatbot. I will type something here from time to time.")
 
 async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """/ping handler."""
