@@ -1,14 +1,12 @@
 """Telegram bot logic."""
 
+import configparser
 import logging
-import os
 
 from telegram import Update
 from telegram.ext import filters, ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler
 
 from markov import write_to_file, read_from_file, Chain
-
-TOKEN = os.getenv('API_TOKEN')
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -41,7 +39,10 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=answer)
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(TOKEN).build()
+    config = configparser.ConfigParser()  # создаём объекта парсера
+    config.read("settings.ini")
+
+    application = ApplicationBuilder().token(config["Credentials"]["token"]).build()
 
     start_handler = CommandHandler('start', start)
     message_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), message)
