@@ -2,11 +2,12 @@
 
 import configparser
 import logging
+import random
 
 from telegram import Update
 from telegram.ext import filters, ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler
 
-from markov import write_to_file, read_from_file, Chain
+from markov import write_to_file, read_from_file
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -29,14 +30,35 @@ async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Text messages handler."""
 
+    if update.message is None:
+        return
+    if update.message.text is None:
+        return
+    if len(update.message.text) == 0:
+        return
+
     chain = read_from_file(update.effective_chat.id)
     chain.add_message(update.message.text)
     write_to_file(chain, update.effective_chat.id)
 
-    answer = chain.gen_answer(update.message.text)
+    force = ("excalibur" in update.message.text.lower()
+             or "экскалибур" in update.message.text.lower())
+    if update.message.reply_to_message is not None:
+        if update.message.reply_to_message["from"]["id"] == context.bot.id:
+            force = True
+            if answer is None:
+                answer = "I don't know what to say here;"
+                answer += " need some more time to learn things in this chat."
+
+    answer = chain.gen_answer(update.message.text, ignore_notability=force)
     if answer is None:
         return
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=answer)
+
+    if not force and random.randrange(7) != 0:
+        return
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, text=answer, reply_to_message_id=update.message.id)
 
 if __name__ == '__main__':
     config = configparser.ConfigParser()  # создаём объекта парсера
