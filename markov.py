@@ -21,7 +21,10 @@ class Chain:
     def normalize(self, string):
         """Filter bad symbols, lower it and so on."""
 
-        return "".join(filter(lambda c: c.isalnum() or c == " ", string)).lower()
+        return " ".join(filter(
+            lambda x: len(x) > 0,
+            "".join(map(lambda c: c if c.isalnum() else " ", string)).split(" "),
+        )).lower()
 
     def inc(self, word1, word2):
         """Increment pair probability."""
