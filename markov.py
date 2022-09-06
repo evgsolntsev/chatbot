@@ -23,7 +23,7 @@ class Chain:
 
         return " ".join(filter(
             lambda x: len(x) > 0,
-            "".join(map(lambda c: c if c.isalnum() else " ", string)).split(" "),
+            "".join(map(lambda c: c if c.isalnum() or c == "-" else " ", string)).split(" "),
         )).lower()
 
     def inc(self, word1, word2):
@@ -53,21 +53,29 @@ class Chain:
 
         self.inc(words[-1], END)
 
-    def gen_answer(self, string):
-        """Generate answer."""
-
-        word = random.choice(self.normalize(string).split())
-        if word not in self.data:
-            return None
+    def is_known(self, word):
+        """Check if word is well-known."""
 
         length = 0
         for _, value in self.data[word].items():
             length += value
 
-        if length < 20:
+        return length >= 20
+
+    def gen_answer(self, string):
+        """Generate answer."""
+
+        word = ""
+        words = self.normalize(string).split()
+        random.shuffle(words)
+        for tmp in words:
+            if self.is_known(tmp):
+                word = tmp
+                break
+        else:
             return None
 
-        if random.randrange(10) != 0:
+        if random.randrange(7) != 0:
             return None
 
         return self.gen_message(word)
