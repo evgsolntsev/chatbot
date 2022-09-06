@@ -62,7 +62,7 @@ class Chain:
 
         return length >= 20
 
-    def gen_answer(self, string, ignore_notability=False):
+    def gen_answer(self, string, force=False):
         """Generate answer."""
 
         word = ""
@@ -73,12 +73,9 @@ class Chain:
                 word = tmp
                 break
         else:
-            if not ignore_notability:
+            if not force:
                 return None
-            for tmp in words:
-                if tmp in self.data:
-                    word = tmp
-                    break
+            word = random.choice(list(self.data.keys()))
 
         return self.gen_message(word)
 

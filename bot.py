@@ -47,7 +47,7 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if update.message.reply_to_message["from"]["id"] == context.bot.id:
             force = True
 
-    answer = chain.gen_answer(update.message.text, ignore_notability=force)
+    answer = chain.gen_answer(update.message.text, force=force)
     if answer is None:
         if not force:
             return
