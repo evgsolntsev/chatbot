@@ -10,10 +10,12 @@ class Chain:
 
     data = {}
     length = 0
+    probability = 10
 
-    def __init__(self, data):
+    def __init__(self, data, probability=10):
         self.data = data
         self.length = 0
+        self.probability = probability
         for _, inner_data in data.items():
             for _, value in inner_data.items():
                 self.length += value
@@ -79,6 +81,13 @@ class Chain:
 
         return self.gen_message(word)
 
+    def gen_answer_with_probability(self, string, force=False):
+        """Generate answer with given probability."""
+
+        if not force and random.randrange(self.probability):
+            return None
+        return self.gen_answer(string, force=force)
+
     def gen_message(self, word):
         """Generate new message."""
 
@@ -102,7 +111,10 @@ class Chain:
 def write_to_file(chain, int_id):
     """Writes Chain to file."""
 
-    data = json.dumps(chain.data)
+    data = {
+        "data": json.dumps(chain.data),
+        "probability": chain.probability
+    }
     with open(to_filename(int_id), "w+", encoding="utf-8") as destination:
         destination.write(data)
 
@@ -112,7 +124,8 @@ def read_from_file(int_id):
 
     try:
         with open(to_filename(int_id), "r", encoding="utf-8") as source:
-            return Chain(json.loads(source.read()))
+            dump = json.loads(source.read())
+            return Chain(dump["data"], dump["probability"])
     except OSError:
         return Chain({})
 

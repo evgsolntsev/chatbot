@@ -47,21 +47,21 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if update.message.reply_to_message["from"]["id"] == context.bot.id:
             force = True
 
-    answer = chain.gen_answer(update.message.text, force=force)
+    answer = chain.gen_answer_with_probability(update.message.text, force=force)
     if answer is None:
         if not force:
             return
         answer = "I don't know what to say here;"
         answer += " need some more time to learn things in this chat."
 
-    if not force and random.randrange(7) != 0:
+    if answer is None:
         return
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text=answer, reply_to_message_id=update.message.id)
 
 if __name__ == '__main__':
-    config = configparser.ConfigParser()  # создаём объекта парсера
+    config = configparser.ConfigParser()
     config.read("settings.ini")
 
     application = ApplicationBuilder().token(config["Credentials"]["token"]).build()
