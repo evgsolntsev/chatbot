@@ -111,10 +111,10 @@ class Chain:
 def write_to_file(chain, int_id):
     """Writes Chain to file."""
 
-    data = {
-        "data": json.dumps(chain.data),
+    data = json.dumps({
+        "data": chain.data,
         "probability": chain.probability
-    }
+    })
     with open(to_filename(int_id), "w+", encoding="utf-8") as destination:
         destination.write(data)
 
