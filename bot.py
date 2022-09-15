@@ -29,8 +29,25 @@ async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def set_probability(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """/set_probability handler."""
 
+    if len(context.args) != 1:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="I need one (and only one) number argument for this command.")
+        return
+    try:
+        probability = int(context.args[0], 10)
+    except ValueError:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="I need one (and only one) number argument for this command.")
+        return
+
+    chain = read_from_file(update.effective_chat.id)
+    chain.probability = probability
+    write_to_file(chain, update.effective_chat.id)
+
     await context.bot.send_message(
-        chat_id=update.effective_chat.id, text="Pong.")
+        chat_id=update.effective_chat.id, text="Replies probability updated successfully.")
 
 async def get_probability(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """/get_probability handler."""
