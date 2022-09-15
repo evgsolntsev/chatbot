@@ -2,7 +2,6 @@
 
 import configparser
 import logging
-import random
 
 from telegram import Update
 from telegram.ext import filters, ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler
@@ -26,6 +25,20 @@ async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text="Pong.")
+
+async def set_probability(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """/set_probability handler."""
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, text="Pong.")
+
+async def get_probability(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """/get_probability handler."""
+
+    chain = read_from_file(update.effective_chat.id)
+    reply = f"Replies in this chat appear approximately once every {chain.probability} messages."
+
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=reply)
 
 async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Text messages handler."""
@@ -69,9 +82,13 @@ if __name__ == '__main__':
     start_handler = CommandHandler('start', start)
     message_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), message)
     ping_handler = CommandHandler('ping', ping)
+    set_probability_handler = CommandHandler('set_probability', set_probability)
+    get_probability_handler = CommandHandler('get_probability', get_probability)
 
     application.add_handler(start_handler)
     application.add_handler(ping_handler)
     application.add_handler(message_handler)
+    application.add_handler(set_probability_handler)
+    application.add_handler(get_probability_handler)
 
     application.run_polling()
