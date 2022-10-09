@@ -2,11 +2,14 @@
 
 import configparser
 import logging
+import random
 
 from telegram import Update
-from telegram.ext import filters, ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler
+from telegram.constants import ParseMode
+from telegram.ext import filters, ApplicationBuilder, ContextTypes
+from telegram.ext import CommandHandler, MessageHandler
 
-from markov import write_to_file, read_from_file
+from data import read_from_file
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -42,9 +45,9 @@ async def set_probability(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="I need one (and only one) number argument for this command.")
         return
 
-    chain = read_from_file(update.effective_chat.id)
-    chain.probability = probability
-    write_to_file(chain, update.effective_chat.id)
+    data = read_from_file(update.effective_chat.id)
+    data.chain.probability = probability
+    data.write_to_file(update.effective_chat.id)
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text="Replies probability updated successfully.")
@@ -52,10 +55,57 @@ async def set_probability(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def get_probability(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """/get_probability handler."""
 
-    chain = read_from_file(update.effective_chat.id)
-    reply = f"Replies in this chat appear approximately once every {chain.probability} messages."
+    data = read_from_file(update.effective_chat.id)
+    prob = data.chain.probability
+    reply = f"Replies in this chat appear approximately once every {prob} messages."
 
     await context.bot.send_message(chat_id=update.effective_chat.id, text=reply)
+
+async def add_dungeon_subscriber(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """/dungeon_reg handler."""
+
+    data = read_from_file(update.effective_chat.id)
+    data.add_dungeon_subscriber(update.effective_user.id)
+    data.write_to_file(update.effective_chat.id)
+
+    answer = "Noted."
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, text=answer, reply_to_message_id=update.message.id)
+
+async def remove_dungeon_subscriber(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """/dungeon_unreg handler."""
+
+    data = read_from_file(update.effective_chat.id)
+    data.remove_dungeon_subscriber(update.effective_user.id)
+    data.write_to_file(update.effective_chat.id)
+
+    answer = "Noted."
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, text=answer, reply_to_message_id=update.message.id)
+
+async def ping_dungeon_subscribers(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Ping all dungeon subscribers."""
+
+    data = read_from_file(update.effective_chat.id)
+    mentions = []
+    for user_id in data.dungeon_subscribers:
+        chat_member = await context.bot.get_chat_member(
+            chat_id=update.effective_chat.id, user_id=user_id)
+        mentions.append(chat_member.user.mention_html())
+    answer = "\n".join(mentions)
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, text=answer, parse_mode=ParseMode.HTML)
+
+PHRASES = [
+    """Excalibur! Excalibur!
+From the United King!
+I'm looking for Heaven!
+I'm going to California!
+Excalibur!
+Excalibur!""",
+    "Дурачье!",
+    "Моя история началась в 12-том веке..."
+]
 
 async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Text messages handler."""
@@ -67,22 +117,26 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if len(update.message.text) == 0:
         return
 
-    chain = read_from_file(update.effective_chat.id)
-    chain.add_message(update.message.text)
-    write_to_file(chain, update.effective_chat.id)
+    data = read_from_file(update.effective_chat.id)
+    data.chain.add_message(update.message.text)
+    data.write_to_file(update.effective_chat.id)
 
-    force = ("excalibur" in update.message.text.lower()
+    named = ("excalibur" in update.message.text.lower()
              or "экскалибур" in update.message.text.lower())
+    force = named
     if update.message.reply_to_message is not None:
         if update.message.reply_to_message["from"]["id"] == context.bot.id:
             force = True
 
-    answer = chain.gen_answer_with_probability(update.message.text, force=force)
+    answer = data.chain.gen_answer_with_probability(update.message.text, force=force)
     if answer is None:
         if not force:
             return
         answer = "I don't know what to say here;"
         answer += " need some more time to learn things in this chat."
+
+    if named is True and random.randrange(2):
+        answer = random.choice(PHRASES)
 
     if answer is None:
         return
@@ -101,11 +155,17 @@ if __name__ == '__main__':
     ping_handler = CommandHandler('ping', ping)
     set_probability_handler = CommandHandler('set_probability', set_probability)
     get_probability_handler = CommandHandler('get_probability', get_probability)
+    dungeon_reg_handler = CommandHandler('dungeon_reg', add_dungeon_subscriber)
+    dungeon_unreg_handler = CommandHandler('dungeon_unreg', remove_dungeon_subscriber)
+    dungeon_ping_handler = CommandHandler('dungeon_ping', ping_dungeon_subscribers)
 
     application.add_handler(start_handler)
     application.add_handler(ping_handler)
     application.add_handler(message_handler)
     application.add_handler(set_probability_handler)
     application.add_handler(get_probability_handler)
+    application.add_handler(dungeon_reg_handler)
+    application.add_handler(dungeon_unreg_handler)
+    application.add_handler(dungeon_ping_handler)
 
     application.run_polling()

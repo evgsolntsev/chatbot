@@ -1,6 +1,5 @@
 """All Markov chain logic associated funcs here."""
 
-import json
 import random
 
 END = "END"
@@ -107,29 +106,3 @@ class Chain:
             tmp = random.choices(next_words, weights=weights, k=1)[0]
 
         return " ".join(result) + "."
-
-def write_to_file(chain, int_id):
-    """Writes Chain to file."""
-
-    data = json.dumps({
-        "data": chain.data,
-        "probability": chain.probability
-    })
-    with open(to_filename(int_id), "w+", encoding="utf-8") as destination:
-        destination.write(data)
-
-
-def read_from_file(int_id):
-    """Reads Chain from a file."""
-
-    try:
-        with open(to_filename(int_id), "r", encoding="utf-8") as source:
-            dump = json.loads(source.read())
-            return Chain(dump["data"], dump["probability"])
-    except OSError:
-        return Chain({})
-
-def to_filename(int_id):
-    """Converts integer ID to filename."""
-
-    return "data/" + str(int_id) + ".json"
