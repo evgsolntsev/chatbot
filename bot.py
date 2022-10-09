@@ -4,6 +4,8 @@ import configparser
 import logging
 import random
 
+from itertools import islice
+
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import filters, ApplicationBuilder, ContextTypes
@@ -83,6 +85,15 @@ async def remove_dungeon_subscriber(update: Update, context: ContextTypes.DEFAUL
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text=answer, reply_to_message_id=update.message.id)
 
+def split(iterable, size):
+    """Split iterable by chunks."""
+
+    iterable = iter(iterable)
+    return iter(lambda: tuple(islice(iterable, size)), ())
+
+
+MAX_MENTIONS_IN_MESSAGE = 4
+
 async def ping_dungeon_subscribers(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Ping all dungeon subscribers."""
 
@@ -92,9 +103,12 @@ async def ping_dungeon_subscribers(update: Update, context: ContextTypes.DEFAULT
         chat_member = await context.bot.get_chat_member(
             chat_id=update.effective_chat.id, user_id=user_id)
         mentions.append(chat_member.user.mention_html())
-    answer = "\n".join(mentions)
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id, text=answer, parse_mode=ParseMode.HTML)
+
+    chunks = split(mentions, MAX_MENTIONS_IN_MESSAGE)
+    for chunk in chunks:
+        answer = "\n".join(chunk)
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, text=answer, parse_mode=ParseMode.HTML)
 
 PHRASES = [
     """Excalibur! Excalibur!
