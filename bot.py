@@ -85,6 +85,18 @@ async def remove_dungeon_subscriber(update: Update, context: ContextTypes.DEFAUL
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text=answer, reply_to_message_id=update.message.id)
 
+async def add_tmp_dungeon_subscriber(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """/dungeon_reg_once handler."""
+
+    data = read_from_file(update.effective_chat.id)
+    data.remove_dungeon_subscriber(update.effective_user.id)
+    data.add_tmp_dungeon_subscriber(update.effective_user.id)
+    data.write_to_file(update.effective_chat.id)
+
+    answer = "Noted."
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, text=answer, reply_to_message_id=update.message.id)
+
 def split(iterable, size):
     """Split iterable by chunks."""
 
@@ -98,17 +110,26 @@ async def ping_dungeon_subscribers(update: Update, context: ContextTypes.DEFAULT
     """Ping all dungeon subscribers."""
 
     data = read_from_file(update.effective_chat.id)
+    user_ids = list(set(data.dungeon_subscribers + data.tmp_dungeon_subscribers))
     mentions = []
-    for user_id in data.dungeon_subscribers:
-        chat_member = await context.bot.get_chat_member(
-            chat_id=update.effective_chat.id, user_id=user_id)
-        mentions.append(chat_member.user.mention_html())
 
-    chunks = split(mentions, MAX_MENTIONS_IN_MESSAGE)
-    for chunk in chunks:
-        answer = "\n".join(chunk)
+    if user_ids:
+        for user_id in user_ids:
+            chat_member = await context.bot.get_chat_member(
+                chat_id=update.effective_chat.id, user_id=user_id)
+            mentions.append(chat_member.user.mention_html())
+
+        chunks = split(mentions, MAX_MENTIONS_IN_MESSAGE)
+        for chunk in chunks:
+            answer = "\n".join(chunk)
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=answer, parse_mode=ParseMode.HTML)
+
+        data.tmp_dungeon_subscribers = []
+        data.write_to_file(update.effective_chat.id)
+    else:
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, text=answer, parse_mode=ParseMode.HTML)
+            chat_id=update.effective_chat.id, text="No subscribers now.")
 
 PHRASES = [
     """Excalibur! Excalibur!
@@ -171,6 +192,7 @@ if __name__ == '__main__':
     get_probability_handler = CommandHandler('get_probability', get_probability)
     dungeon_reg_handler = CommandHandler('dungeon_reg', add_dungeon_subscriber)
     dungeon_unreg_handler = CommandHandler('dungeon_unreg', remove_dungeon_subscriber)
+    dungeon_reg_once_handler = CommandHandler('dungeon_reg_once', add_tmp_dungeon_subscriber)
     dungeon_ping_handler = CommandHandler('dungeon_ping', ping_dungeon_subscribers)
 
     application.add_handler(start_handler)
@@ -180,6 +202,7 @@ if __name__ == '__main__':
     application.add_handler(get_probability_handler)
     application.add_handler(dungeon_reg_handler)
     application.add_handler(dungeon_unreg_handler)
+    application.add_handler(dungeon_reg_once_handler)
     application.add_handler(dungeon_ping_handler)
 
     application.run_polling()
