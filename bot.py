@@ -8,6 +8,7 @@ from itertools import islice
 
 from telegram import Update
 from telegram.constants import ParseMode
+from telegram.error import BadRequest
 from telegram.ext import filters, ApplicationBuilder, ContextTypes
 from telegram.ext import CommandHandler, MessageHandler
 
@@ -115,9 +116,12 @@ async def ping_dungeon_subscribers(update: Update, context: ContextTypes.DEFAULT
 
     if user_ids:
         for user_id in user_ids:
-            chat_member = await context.bot.get_chat_member(
-                chat_id=update.effective_chat.id, user_id=user_id)
-            mentions.append(chat_member.user.mention_html())
+            try:
+                chat_member = await context.bot.get_chat_member(
+                    chat_id=update.effective_chat.id, user_id=user_id)
+                mentions.append(chat_member.user.mention_html())
+            except BadRequest:
+                logging.error("Failed to get info about %s", user_id)
 
         chunks = split(mentions, MAX_MENTIONS_IN_MESSAGE)
         for chunk in chunks:
