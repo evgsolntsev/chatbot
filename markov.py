@@ -78,7 +78,12 @@ class Chain:
                 return None
             word = random.choice(list(self.data.keys()))
 
-        return self.gen_message(word)
+        for _ in range(5):
+            answer = self.gen_message(word)
+            if len(answer) > 5:
+                return answer
+
+        return None
 
     def gen_answer_with_probability(self, string, force=False):
         """Generate answer with given probability."""
