@@ -135,6 +135,19 @@ async def ping_dungeon_subscribers(update: Update, context: ContextTypes.DEFAULT
         await context.bot.send_message(
             chat_id=update.effective_chat.id, text="No subscribers now.")
 
+PONIK_ID = 372137239
+EVGSOL_ID = 44989459
+
+async def good_morning(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Good morning messages handler."""
+
+    answer = "Ты не Поник. >_>"
+    if update.effective_user.id == PONIK_ID:
+        answer = "Утречка, Поник!"
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, text=answer, reply_to_message_id=update.message.id)
+
 PHRASES = [
     """Excalibur! Excalibur!
 From the United King!
@@ -154,6 +167,10 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.text is None:
         return
     if len(update.message.text) == 0:
+        return
+
+    if update.message.text == "утречка чятик":
+        await good_morning(update, context)
         return
 
     data = read_from_file(update.effective_chat.id)
