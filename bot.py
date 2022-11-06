@@ -13,6 +13,7 @@ from telegram.ext import filters, ApplicationBuilder, ContextTypes
 from telegram.ext import CommandHandler, MessageHandler
 
 from data import read_from_file
+from user import EVGSOL, PONIK, UNHEILIG, KAIMIRA
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -140,16 +141,25 @@ async def ping_dungeon_subscribers(update: Update, context: ContextTypes.DEFAULT
         await context.bot.send_message(
             chat_id=update.effective_chat.id, text="No subscribers now.")
 
-PONIK_ID = 372137239
-EVGSOL_ID = 44989459
+def is_ponik(update: Update):
+    """Checks if message author is Ponik."""
+
+    return update.effective_user.id == PONIK.user_id
 
 async def good_morning(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Good morning messages handler."""
 
     answer = "Ты не Поник. >_>"
-    if update.effective_user.id == PONIK_ID:
+    if is_ponik(update):
         answer = "Утречка, Поник!"
 
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, text=answer, reply_to_message_id=update.message.id)
+
+async def good_night(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Good night sticker handler."""
+
+    answer = "Good night, sweet prince!"
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text=answer, reply_to_message_id=update.message.id)
 
@@ -169,12 +179,18 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if update.message is None:
         return
+    if update.message.sticker is not None:
+        print(update.message.sticker)
     if update.message.text is None:
         return
     if len(update.message.text) == 0:
         return
 
-    if update.message.text == "утречка чятик":
+    if "".join(filter(lambda x: x.isalpha(), update.message.text.lower())) in (
+            "утречкачятик",
+            "утречкачатик"
+    ):
+
         await good_morning(update, context)
         return
 
@@ -205,6 +221,36 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text=answer, reply_to_message_id=update.message.id)
 
+OWNERS = {
+    "Elisey": PONIK,
+    "lmp_vk": UNHEILIG,
+    "spf6df055576a9675c9d1a22fe6ce826a3_by_stckrRobot": KAIMIRA
+}
+
+GOOD_NIGHT_STICKER = "AgADPAADR_sJDA"
+STICKERS_MAP = {
+    GOOD_NIGHT_STICKER: good_night
+}
+
+async def sticker(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Text messages handler."""
+
+    if update.message is None:
+        return
+    if update.message.sticker is None:
+        return
+    print(update.message.sticker)
+
+    if update.message.sticker.set_name in OWNERS:
+        name = OWNERS[update.message.sticker.set_name].name
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, text=f"Ты не {name}. >_>",
+            reply_to_message_id=update.message.id)
+        return
+
+    if update.message.sticker.file_unique_id in STICKERS_MAP:
+        await STICKERS_MAP[update.message.sticker.file_unique_id](update, context)
+
 if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read("settings.ini")
@@ -213,6 +259,7 @@ if __name__ == '__main__':
 
     start_handler = CommandHandler('start', start)
     message_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), message)
+    sticker_handler = MessageHandler(filters.Sticker.ALL, sticker)
     ping_handler = CommandHandler('ping', ping)
     set_probability_handler = CommandHandler('set_probability', set_probability)
     get_probability_handler = CommandHandler('get_probability', get_probability)
@@ -224,6 +271,7 @@ if __name__ == '__main__':
     application.add_handler(start_handler)
     application.add_handler(ping_handler)
     application.add_handler(message_handler)
+    application.add_handler(sticker_handler)
     application.add_handler(set_probability_handler)
     application.add_handler(get_probability_handler)
     application.add_handler(dungeon_reg_handler)
