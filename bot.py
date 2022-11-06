@@ -116,12 +116,17 @@ async def ping_dungeon_subscribers(update: Update, context: ContextTypes.DEFAULT
 
     if user_ids:
         for user_id in user_ids:
-            try:
-                chat_member = await context.bot.get_chat_member(
-                    chat_id=update.effective_chat.id, user_id=user_id)
-                mentions.append(chat_member.user.mention_html())
-            except BadRequest:
-                logging.error("Failed to get info about %s", user_id)
+            error = None
+            for _ in range(5):
+                try:
+                    chat_member = await context.bot.get_chat_member(
+                        chat_id=update.effective_chat.id, user_id=user_id)
+                    mentions.append(chat_member.user.mention_html())
+                    break
+                except BadRequest as caught_error:
+                    error = caught_error
+            else:
+                logging.error("Failed to get info about %s: %s", user_id, error)
 
         chunks = split(mentions, MAX_MENTIONS_IN_MESSAGE)
         for chunk in chunks:
