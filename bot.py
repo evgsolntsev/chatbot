@@ -179,8 +179,6 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if update.message is None:
         return
-    if update.message.sticker is not None:
-        print(update.message.sticker)
     if update.message.text is None:
         return
     if len(update.message.text) == 0:
@@ -239,7 +237,6 @@ async def sticker(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     if update.message.sticker is None:
         return
-    print(update.message.sticker)
 
     if update.message.sticker.set_name in OWNERS:
         name = OWNERS[update.message.sticker.set_name].name
