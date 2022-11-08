@@ -3,6 +3,7 @@
 import configparser
 import logging
 import random
+import time
 
 from itertools import islice
 
@@ -163,6 +164,23 @@ async def good_night(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text=answer, reply_to_message_id=update.message.id)
 
+async def countdown(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Countdown messages handler."""
+
+    countdown_phrases = (
+        "Ten (Ground control)",
+        "Nine (to Major Tom)",
+        "Eight, seven, six (Commencing)",
+        "Five (countdown, engines on)",
+        "Four, three, two (Check ignition)",
+        "One (and may God's love)",
+        "Lift off (be with you)"
+    )
+    for phrase in countdown_phrases:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, text=phrase)
+        time.sleep(1)
+
 PHRASES = [
     """Excalibur! Excalibur!
 From the United King!
@@ -177,9 +195,7 @@ Excalibur!""",
 async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Text messages handler."""
 
-    if update.message is None:
-        return
-    if update.message.text is None:
+    if update.message is None or update.message.text is None:
         return
     if len(update.message.text) == 0:
         return
@@ -198,6 +214,17 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     named = ("excalibur" in update.message.text.lower()
              or "экскалибур" in update.message.text.lower())
+
+    if named and (
+            "считай" in update.message.text.lower() or
+            "щетуй" in update.message.text.lower() or
+            "щетaй" in update.message.text.lower() or
+            "щитуй" in update.message.text.lower() or
+            "щитуемо" in update.message.text.lower()
+    ):
+        await countdown(update, context)
+        return
+
     force = named
     if update.message.reply_to_message is not None:
         if update.message.reply_to_message["from"]["id"] == context.bot.id:
@@ -213,11 +240,10 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if named is True and random.randrange(2):
         answer = random.choice(PHRASES)
 
-    if answer is None:
-        return
+    if answer is not None:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, text=answer, reply_to_message_id=update.message.id)
 
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id, text=answer, reply_to_message_id=update.message.id)
 
 OWNERS = {
     "Elisey": PONIK,
@@ -264,6 +290,7 @@ if __name__ == '__main__':
     dungeon_unreg_handler = CommandHandler('dungeon_unreg', remove_dungeon_subscriber)
     dungeon_reg_once_handler = CommandHandler('dungeon_reg_once', add_tmp_dungeon_subscriber)
     dungeon_ping_handler = CommandHandler('dungeon_ping', ping_dungeon_subscribers)
+    countdown_handler = CommandHandler('countdown', countdown)
 
     application.add_handler(start_handler)
     application.add_handler(ping_handler)
@@ -275,5 +302,6 @@ if __name__ == '__main__':
     application.add_handler(dungeon_unreg_handler)
     application.add_handler(dungeon_reg_once_handler)
     application.add_handler(dungeon_ping_handler)
+    application.add_handler(countdown_handler)
 
     application.run_polling()
