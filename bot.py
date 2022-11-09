@@ -265,11 +265,12 @@ async def sticker(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if update.message.sticker.set_name in OWNERS:
-        name = OWNERS[update.message.sticker.set_name].name
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id, text=f"Ты не {name}. >_>",
-            reply_to_message_id=update.message.id)
-        return
+        if update.message["from"].id != OWNERS[update.message.sticker.set_name].user_id:
+            name = OWNERS[update.message.sticker.set_name].name
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=f"Ты не {name}. >_>",
+                reply_to_message_id=update.message.id)
+            return
 
     if update.message.sticker.file_unique_id in STICKERS_MAP:
         await STICKERS_MAP[update.message.sticker.file_unique_id](update, context)
