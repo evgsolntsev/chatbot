@@ -14,7 +14,7 @@ from telegram.ext import filters, ApplicationBuilder, ContextTypes
 from telegram.ext import CommandHandler, MessageHandler
 
 from data import read_from_file
-from user import VAULI, EVGSOL, PONIK, UNHEILIG, KAIMIRA
+from user import VAULI, EVGSOL, PONIK, UNHEILIG, KAIMIRA, HARPY
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -206,6 +206,8 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if len(update.message.text) == 0:
         return
 
+    print(update.message["from"])
+
     if "".join(filter(lambda x: x.isalpha(), update.message.text.lower())) in (
             "утречкачятик",
             "утречкачатик"
@@ -257,6 +259,7 @@ OWNERS = {
     "spf6df055576a9675c9d1a22fe6ce826a3_by_stckrRobot": KAIMIRA,
     "spe2bdb80721de76d8feea189dd9d7412f_by_stckrRobot": KAIMIRA,
     "BabyYoda": VAULI,
+    "AlcoLan": HARPY,
 }
 
 GOOD_NIGHT_STICKER = "AgADPAADR_sJDA"
