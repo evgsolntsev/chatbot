@@ -14,7 +14,7 @@ from telegram.ext import filters, ApplicationBuilder, ContextTypes
 from telegram.ext import CommandHandler, MessageHandler
 
 from data import read_from_file
-from user import EVGSOL, PONIK, UNHEILIG, KAIMIRA
+from user import VAULI, EVGSOL, PONIK, UNHEILIG, KAIMIRA
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -254,7 +254,8 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 OWNERS = {
     "Elisey": PONIK,
     "lmp_vk": UNHEILIG,
-    "spf6df055576a9675c9d1a22fe6ce826a3_by_stckrRobot": KAIMIRA
+    "spf6df055576a9675c9d1a22fe6ce826a3_by_stckrRobot": KAIMIRA,
+    "BabyYoda": VAULI,
 }
 
 GOOD_NIGHT_STICKER = "AgADPAADR_sJDA"
