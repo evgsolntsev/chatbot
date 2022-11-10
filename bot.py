@@ -167,7 +167,7 @@ async def good_night(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def countdown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Countdown messages handler."""
 
-    countdown_phrases = (
+    countdown_phrases = ((
         "Ten (Ground control)",
         "Nine (to Major Tom)",
         "Eight, seven, six (Commencing)",
@@ -175,8 +175,14 @@ async def countdown(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Four, three, two (Check ignition)",
         "One (and may God's love)",
         "Lift off (be with you)"
-    )
-    for phrase in countdown_phrases:
+    ), (
+        "Ten (kiss me on the lips)",
+        "Nine (run your fingers through my hair)",
+        "Eight (touch me... slowly)",
+        "Hold it! Let's go straight...",
+        "To number one!"
+    ))
+    for phrase in random.choice(countdown_phrases):
         await context.bot.send_message(
             chat_id=update.effective_chat.id, text=phrase)
         time.sleep(1)
