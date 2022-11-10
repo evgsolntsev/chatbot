@@ -255,6 +255,7 @@ OWNERS = {
     "Elisey": PONIK,
     "lmp_vk": UNHEILIG,
     "spf6df055576a9675c9d1a22fe6ce826a3_by_stckrRobot": KAIMIRA,
+    "spe2bdb80721de76d8feea189dd9d7412f_by_stckrRobot": KAIMIRA,
     "BabyYoda": VAULI,
 }
 
