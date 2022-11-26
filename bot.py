@@ -238,6 +238,15 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if update.message.reply_to_message["from"]["id"] == context.bot.id:
             force = True
 
+    if force and (
+            "угнетайся" in update.message.text.lower() or
+            "калькулятор" in update.message.text.lower()
+    ):
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, text="Угнетаюсь. :(",
+            reply_to_message_id=update.message.id)
+        return
+
     answer = data.chain.gen_answer_with_probability(update.message.text, force=force)
     if answer is None:
         if not force:
