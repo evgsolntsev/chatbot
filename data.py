@@ -65,10 +65,13 @@ def read_from_file(int_id):
         with open(to_filename(int_id), "r", encoding="utf-8") as source:
             dump = json.loads(source.read())
             return Data(
-                dump["data"], probability=dump["probability"],
+                dump["data"], probability=dump.get("probability", 10),
                 dungeon_subscribers=dump.get("dsubscribers", []),
                 tmp_dungeon_subscribers=dump.get("dtmpsubscribers", []))
     except OSError:
+        return Data({})
+    except Exception as e:
+        print("Error reading data in file '{}': {}".format(to_filename(int_id), e))
         return Data({})
 
 def to_filename(int_id):
